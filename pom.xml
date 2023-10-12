@@ -6,7 +6,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.nuke24.tscript34.p0012</groupId>
 	<artifactId>tscript34-p0012-lib01</artifactId>
-	<version>0.0.4.2</version>
+	<version>0.0.4-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>TScript34-P0012-lib01</name>
 	
