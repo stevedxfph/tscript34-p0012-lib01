@@ -31,3 +31,22 @@ couple the name of your proect to where it happens to be hosted.
 Findings: the existence of a .yml file in .github/workflows indicating
 the condition under which to run the workflow (`on: [push]`)
 makes it run the `jobs` listed in that same file.
+
+### TODO Read more about what the YAML means
+
+There are 'workflows', and 'workflow runs'.
+Each time you run a workflow is a 'workflow run', I suppose.
+
+`name` gives the name of the workflow,
+while `run-name` is an expression that is evaluated to produce the name of each run.
+
+By 'expression' I mean that it can contain variable references like `${{ github.actor }}`.
+Currently I know not at what stage of processing
+(before the YAML is parsed? On a per-field basis when the value is needed?)
+those expressions are evaluated, nor what can go in them.
+
+[Workflow syntax documentation](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#run-name)
+says that "this value can include expressions" (referring to `run-name`)
+"and can reference the `github` and `inputs` contexts".
+Which hints that each field has its own rules for whether
+those expressions are evaluated at all, and what they may contain.
