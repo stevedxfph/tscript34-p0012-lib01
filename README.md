@@ -18,3 +18,10 @@ couple the name of your proect to where it happens to be hosted.
 ### Can I get GitHub to build and host packages for me?
 
 [Maybe](https://docs.github.com/en/actions/publishing-packages/publishing-java-packages-with-maven)!
+
+
+## Tasks
+
+### TODO Make proof-of-concept GitHub action or workflow or whatever (M4909T-148)
+
+[Start here](https://docs.github.com/en/actions/learn-github-actions/understanding-github-actions)
