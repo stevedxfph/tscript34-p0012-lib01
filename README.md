@@ -22,6 +22,12 @@ couple the name of your proect to where it happens to be hosted.
 
 ## Tasks
 
-### TODO Make proof-of-concept GitHub action or workflow or whatever (M4909T-148)
+### DONE Make proof-of-concept GitHub action or workflow or whatever (M4909T-148)
 
 [Start here](https://docs.github.com/en/actions/learn-github-actions/understanding-github-actions)
+
+[Done](https://github.com/stevedxfph/tscript34-p0012-lib01/actions/runs/6537132384)!
+
+Findings: the existence of a .yml file in .github/workflows indicating
+the condition under which to run the workflow (`on: [push]`)
+makes it run the `jobs` listed in that same file.
