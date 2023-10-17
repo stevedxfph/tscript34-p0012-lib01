@@ -20,6 +20,18 @@ couple the name of your proect to where it happens to be hosted.
 [Maybe](https://docs.github.com/en/actions/publishing-packages/publishing-java-packages-with-maven)!
 
 
+#### [223-10-17]: Findings:
+
+v0.0.5, `7b59b85cf2e81a42d47d14c72ada334f9b07942c`, works, and appears to have gnerated
+a package (which I still need to test that I can auto-download it),
+though GitHub complained about the hello world workflow having 'No event triggers defined in `on`'
+
+Next commit, `cefd7407c4b72704230560fda75764b6e57d996e`,
+it still complained about that, when I left out the `on: ` line entirely.
+
+[Docs indicate complex rules for 'on'](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#onpushpull_requestpull_request_targetpathspaths-ignore)
+
+
 ## Tasks
 
 ### DONE Make proof-of-concept GitHub action or workflow or whatever (M4909T-148)

@@ -1,5 +1,6 @@
 name: maven-package-attempt-1
 run-name: ${{ github.actor }} is trying to publish a Maven package using GitHub
+on: workflow_dispatch
 jobs:
   maven-package-job-1:
     runs-on: ubuntu-latest
