@@ -22,7 +22,7 @@
 		<repository>
 			<id>github</id>
 			<name>GitHub Packages</name>
-			<url>https://maven.pkg.github.com/stevedxfph/tscript34-p0012-lib01</url>
+			<url>https://maven.pkg.github.com/TOGoS/tscript34-p0012-lib01</url>
 		</repository>
 	</distributionManagement>
 	
