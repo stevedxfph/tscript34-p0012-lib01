@@ -31,6 +31,22 @@ it still complained about that, when I left out the `on: ` line entirely.
 
 [Docs indicate complex rules for 'on'](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#onpushpull_requestpull_request_targetpathspaths-ignore)
 
+Firs commit of 0.0.6-SNAPSHOT, `622f91323643316ba78dffeeddd0765561905cd9`,
+I said `on: workflow_dispatch` (as per https://stackoverflow.com/a/70315883/17653243).
+This seems to have prevented either workflow from automatically running.
+
+Also note that when I pushed tag `0.0.5`, before that change,
+the build failed because that package had already been built.
+I think this is fine.  Just be careful not to have the same `<version>`
+appear in multiple commits, and have the tag match it, for clarity.
+
+I manually (through the GitHub web UI) kicked off the `learn-github-actions`
+workflow, and [it succeeded](https://github.com/stevedxfph/tscript34-p0012-lib01/actions/runs/6553382624).
+This seems to indicate that `on: workflow_dispatch` works as a way to have
+a workflow that can be triggered, but does not happen automatically.
+
+In the future maybe I can figure a way to have it run when tags of the form `/\d+\.\d+\.\d+/` are pushed.
+
 
 ## Tasks
 
