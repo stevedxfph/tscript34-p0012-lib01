@@ -47,6 +47,17 @@ a workflow that can be triggered, but does not happen automatically.
 
 In the future maybe I can figure a way to have it run when tags of the form `/\d+\.\d+\.\d+/` are pushed.
 
+[2023-10-17]: I got `v0.0.6-take2` to automatically build with the following `on` bit:
+
+```yaml
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'
+```
+
 
 ## Tasks
 
