@@ -16,7 +16,7 @@ It was a huge pain in the butt, but it is possible.
 No.  It won't let you use your proper `groupId` and `artifactId` or `version`.
 It derives those itself using your GitHub username, project name, and tag.
 Which arguably is a simpler way to do things, but maybe you don't want to
-couple the name of your proect to where it happens to be hosted.
+couple the name of your project to where it happens to be hosted.
 
 ### Can I get GitHub to build and host packages for me?
 
@@ -64,7 +64,10 @@ on:
 
 ## Tasks
 
-### DONE Make proof-of-concept GitHub action or workflow or whatever (M4909T-148)
+### Make proof-of-concept GitHub action
+...or workflow or whatever
+
+(DONE; M4909T-148)
 
 [Start here](https://docs.github.com/en/actions/learn-github-actions/understanding-github-actions)
 
@@ -74,7 +77,8 @@ Findings: the existence of a .yml file in .github/workflows indicating
 the condition under which to run the workflow (`on: [push]`)
 makes it run the `jobs` listed in that same file.
 
-### TODO Read more about what the YAML means
+### Read more about what the YAML means
+(TODO)
 
 There are 'workflows', and 'workflow runs'.
 Each time you run a workflow is a 'workflow run', I suppose.
@@ -95,6 +99,7 @@ those expressions are evaluated at all, and what they may contain.
 
 
 ### Finally Publish to Maven Central
+(DONE; M4909T-257)
 
 There are a lot of steps.
 
@@ -181,7 +186,7 @@ So I clicked that.
 Now it's taking its time publishing.
 
 
-(2024-02-17T09): It is published!
+[2024-02-17T09]: It is published!
 
 Can we require the new version from app01
 and have it download the thing
