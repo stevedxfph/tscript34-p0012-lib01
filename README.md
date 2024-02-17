@@ -89,3 +89,49 @@ says that "this value can include expressions" (referring to `run-name`)
 "and can reference the `github` and `inputs` contexts".
 Which hints that each field has its own rules for whether
 those expressions are evaluated at all, and what they may contain.
+
+
+### TOGO See if you can publish to Maven Central again
+
+There are a lot of steps.
+
+- [X] Create account on https://central.sonatype.com/
+- [X] Verify domain by adding a TXT record to nuke24.net
+- [X] Generate a GPG key on my laptop
+- [X] Configure Maven to call GPG to sign keys
+  - Yet more `<plugin>`s required
+  - But miraculously it does seem to work, and `mvn deploy`,
+    while it didn't manage to actually deploy,
+    did get as far as getting GPG to prompt me for my passphrase
+  - `mvn verify` might get to the just-about-to-depoloy point 
+- [X] Determine that `mvn deploy` doesn't work,
+  since it's apparently trying to use some old system
+  involving Jira usernames and passwords, which I don't have.
+- [X] Upload a zip to https://central.sonatype.com/publishing
+  and see that it got rejected.  At least it lists a bunch of reasons why.
+  No .sha1s / .md5s.  Why doesn't the dumb Maven plugin generate those, huh?
+- [ ] Generate some sha1s and md5s myself
+
+#### Upload Attempt 3
+
+> File path 'net/nuke24/tscript34/p0012' is not valid for file 'tscript34-p0012-lib01-0.0.8-javadoc.jar'
+
+Repeat for all the files.
+Does it not want that folder structure?
+Oh, or maybe it's because I forgot the version number level.
+
+> Developers information is missing
+> Project URL is not defined
+> Project description is missing
+> SCM URL is not defined
+
+### Upload Attempt 4
+
+I added an additional level of directory named "0.0.8".
+
+`zip -r tscript34-p0012-lib01-0.0.8-take4.zip net` from within `target/`
+(under which I have a `net/`, etc) seems to do the job.
+
+> File path 'net/nuke24/tscript34/p0012/0.0.8' is not valid for file 'tscript34-p0012-lib01-0.0.8-javadoc.jar'
+
+So it still doesn't like my directory structure.
