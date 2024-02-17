@@ -8,6 +8,9 @@ This project is an attempt to make a Maven package.
 
 No.  The list of steps is too long.
 
+2024-02-17 Update: I [managed to do it](#finally-publish-to-maven-central).
+It was a huge pain in the butt, but it is possible.
+
 ### Can I publish to JitPack?
 
 No.  It won't let you use your proper `groupId` and `artifactId` or `version`.
@@ -91,7 +94,7 @@ Which hints that each field has its own rules for whether
 those expressions are evaluated at all, and what they may contain.
 
 
-### TOGO See if you can publish to Maven Central again
+### Finally Publish to Maven Central
 
 There are a lot of steps.
 
@@ -110,7 +113,10 @@ There are a lot of steps.
 - [X] Upload a zip to https://central.sonatype.com/publishing
   and see that it got rejected.  At least it lists a bunch of reasons why.
   No .sha1s / .md5s.  Why doesn't the dumb Maven plugin generate those, huh?
-- [ ] Generate some sha1s and md5s myself
+- [X] Generate some sha1s and md5s myself
+  - I wrote [a small Ruby script](./generate.hashes.rb) to help.
+- [X] Add some extra metadata to pom.xml
+- [X] A few more attempts at zip files to get the folder structure right
 
 #### Upload Attempt 3
 
@@ -173,3 +179,23 @@ Ooh, it's now 'verified', and I can 'publish'!
 So I clicked that.
 
 Now it's taking its time publishing.
+
+
+(2024-02-17T09): It is published!
+
+Can we require the new version from app01
+and have it download the thing
+and all work out?
+
+```sh
+mvn test
+```
+
+```
+Downloading from central: https://repo1.maven.org/maven2/net/nuke24/tscript34/p0012/tscript34-p0012-lib01/0.0.9/tscript34-p0012-lib01-0.0.9.pom
+Downloaded from central: https://repo1.maven.org/maven2/net/nuke24/tscript34/p0012/tscript34-p0012-lib01/0.0.9/tscript34-p0012-lib01-0.0.9.pom (4.0 kB at 5.7 kB/s)
+Downloading from central: https://repo1.maven.org/maven2/net/nuke24/tscript34/p0012/tscript34-p0012-lib01/0.0.9/tscript34-p0012-lib01-0.0.9.jar
+Downloaded from central: https://repo1.maven.org/maven2/net/nuke24/tscript34/p0012/tscript34-p0012-lib01/0.0.9/tscript34-p0012-lib01-0.0.9.jar (3.7 kB at 29 kB/s)
+```
+
+:o
