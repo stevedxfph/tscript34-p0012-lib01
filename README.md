@@ -130,8 +130,46 @@ Oh, or maybe it's because I forgot the version number level.
 I added an additional level of directory named "0.0.8".
 
 `zip -r tscript34-p0012-lib01-0.0.8-take4.zip net` from within `target/`
-(under which I have a `net/`, etc) seems to do the job.
+(under which I have a `net/...`, which contains the `jar`, `pom`, `md5`, `sha1`,
+and `asc` files just for this one version) seems to do the job.
 
 > File path 'net/nuke24/tscript34/p0012/0.0.8' is not valid for file 'tscript34-p0012-lib01-0.0.8-javadoc.jar'
 
 So it still doesn't like my directory structure.
+
+### Attempt #5
+
+I had tried to fill in some metadata in pom.xml,
+and Sonatype seems to have fewer complaints.
+
+> 1 out of 2 Components Validated
+> 
+> null
+
+Still doesn't like my paths.
+
+I realize now that the artifact name should be in there, too.
+
+`net/nuke24/tscript34/p0012/tscript34-p0012-lib01/0.0.9/tscript34-p0012-lib01-0.0.9.pom`, etc.
+
+### Attempt #6
+
+Deployment ID `bf4e33ae-2ec4-40d3-a5f8-6ea4ee84ef64`.
+Pending.
+
+
+Still pending.
+
+Well that's different, anyway.
+
+Time for bed.  Check again tomorrow.
+
+https://central.sonatype.com/publishing/deployments
+
+
+(a few minutes later)
+
+Ooh, it's now 'verified', and I can 'publish'!
+So I clicked that.
+
+Now it's taking its time publishing.
