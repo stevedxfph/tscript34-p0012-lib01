@@ -105,7 +105,7 @@ There are a lot of steps.
 
 - [X] Create account on https://central.sonatype.com/
 - [X] Verify domain by adding a TXT record to nuke24.net
-- [X] Generate a GPG key on my laptop
+- [X] [Generate a GPG key](https://central.sonatype.org/publish/requirements/gpg/) on my laptop
 - [X] Configure Maven to call GPG to sign keys
   - Yet more `<plugin>`s required
   - But miraculously it does seem to work, and `mvn deploy`,
