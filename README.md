@@ -123,7 +123,45 @@ There are a lot of steps.
 - [X] Add some extra metadata to pom.xml
 - [X] A few more attempts at zip files to get the folder structure right
 
-#### Upload Attempt 3
+#### Generate a GPG key
+
+```sh
+gpg --gen-key
+```
+
+Pick a name and password, etc.
+
+Assuming you only have one GPG key in your...local keystore...thing
+(Lord help you if you have more than one because I don't know
+how to configure `mvn`/`gpg`/whatever to choose one)
+you should be able to `mvn verify` with the result that
+there are `.asc` files under `target/` corresponding to each
+JAR file that was put there from an earlier step.
+
+Relevant section of pom.xml (within project > build > plugins):
+
+```xml
+<plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-gpg-plugin</artifactId>
+	<version>1.5</version>
+	<executions>
+		<execution>
+			<id>sign-artifacts</id>
+			<phase>verify</phase>
+			<goals>
+				<goal>sign</goal>
+			</goals>
+			<configuration>
+				<keyname>${gpg.keyname}</keyname>
+				<passphraseServerId>${gpg.keyname}</passphraseServerId>
+			</configuration>
+		</execution>
+	</executions>
+</plugin>
+```
+
+#### Upload Attempt #3
 
 > File path 'net/nuke24/tscript34/p0012' is not valid for file 'tscript34-p0012-lib01-0.0.8-javadoc.jar'
 
@@ -136,7 +174,7 @@ Oh, or maybe it's because I forgot the version number level.
 > Project description is missing
 > SCM URL is not defined
 
-### Upload Attempt 4
+### Upload Attempt #4
 
 I added an additional level of directory named "0.0.8".
 
@@ -148,7 +186,7 @@ and `asc` files just for this one version) seems to do the job.
 
 So it still doesn't like my directory structure.
 
-### Attempt #5
+### Upload Attempt #5
 
 I had tried to fill in some metadata in pom.xml,
 and Sonatype seems to have fewer complaints.
@@ -163,7 +201,7 @@ I realize now that the artifact name should be in there, too.
 
 `net/nuke24/tscript34/p0012/tscript34-p0012-lib01/0.0.9/tscript34-p0012-lib01-0.0.9.pom`, etc.
 
-### Attempt #6
+### Upload Attempt #6
 
 Deployment ID `bf4e33ae-2ec4-40d3-a5f8-6ea4ee84ef64`.
 Pending.
