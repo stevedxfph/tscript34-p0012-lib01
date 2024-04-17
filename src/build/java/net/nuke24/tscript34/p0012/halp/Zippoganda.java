@@ -334,6 +334,7 @@ public class Zippoganda {
 		// the zip file, and maybe it will accept it.
 		
 		// Automation progress:
+		// - [ ] Determine group ID, artifact ID, version (by parsing pom.xml?)
 		// - [ ] Determine proper names of generated files as they must
 		//   be in resulting zip file
 		// - [ ] Determine location of generated files
