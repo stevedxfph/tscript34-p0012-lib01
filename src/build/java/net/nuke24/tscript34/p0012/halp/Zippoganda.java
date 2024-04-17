@@ -12,7 +12,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -232,6 +231,16 @@ public class Zippoganda {
 		}
 	}
 	
+	/** An abstract command that lacks context */
+	interface ZCommand {
+		/**
+		 * Given some real context, turn this into an action that can be run.
+		 * 'Context' being some combination of I/O streams and
+		 * system interfaces.
+		 * */
+		public ZAction build(Resolver<Blob> blobResolver, OutputStream out);
+	}
+	
 	static class HashifyAction implements ZAction {
 		final List<String> roots;
 		final ZConsumer<Entry<String>> hashifier;
@@ -263,8 +272,8 @@ public class Zippoganda {
 			return 0;
 		}
 		
-		public static HashifyAction parse(String[] argv, int i, Resolver<Blob> blobResolver, OutputStream out) {
-			List<String> roots = new ArrayList<>();
+		public static ZCommand parse(String[] argv, int i) {
+			final List<String> roots = new ArrayList<>();
 			for( ; i<argv.length; ++i ) {
 				if( argv[i].startsWith("-") ) {
 					throw new RuntimeException("hashify: Unrecognized argument: "+argv[i]);
@@ -272,7 +281,11 @@ public class Zippoganda {
 					roots.add(argv[i]);
 				}
 			}
-			return new HashifyAction(roots, blobResolver, out);
+			return new ZCommand() {
+				public ZAction build(Resolver<Blob> blobResolver, OutputStream out) {
+					return new HashifyAction(roots, blobResolver, out);
+				}
+			};
 		}
 	}
 	
@@ -282,11 +295,11 @@ public class Zippoganda {
 			new FileBlobResolver(new File("."))
 		));
 		
-		ZAction action = null;
+		ZCommand command = null;
 		int i=0;
 		for( ; i<args.length; ++i ) {
 			if( "hashify".equals(args[i]) ) {
-				action = HashifyAction.parse(args, i+1, blobResolver, System.out);
+				command = HashifyAction.parse(args, i+1);
 				break;
 			} else {
 				System.err.println("Unrecognized argument: "+args[i]);
@@ -294,10 +307,12 @@ public class Zippoganda {
 			}
 		}
 		
-		if( action == null ) {
-			System.err.println("No action specified");
+		if( command == null ) {
+			System.err.println("No command given");
 			System.exit(1);
 		}
+		
+		ZAction action = command.build(blobResolver, System.out);
 		
 		System.exit(action.run());
 		
