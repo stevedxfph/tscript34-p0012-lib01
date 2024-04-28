@@ -34,11 +34,11 @@ class Buncho<C> {
 	}
 }
 
-interface Blob {
+interface OutputStreamable {
 	public void writeTo(OutputStream os) throws IOException;
 }
 
-class ByteBlob implements Blob {
+class ByteBlob implements OutputStreamable {
 	final byte[] data;
 	public ByteBlob(byte[] data) {
 		this.data = data;
@@ -64,7 +64,7 @@ class FileInputStreamSource implements InputStreamSource {
 	}
 }
 
-class InputStreamSourceBlob implements Blob {
+class InputStreamSourceBlob implements OutputStreamable {
 	final InputStreamSource source;
 	public InputStreamSourceBlob(InputStreamSource source) {
 		this.source = source;
@@ -90,9 +90,9 @@ interface Resolver<T> {
 }
 
 /** A blob representing a zip file to be generated from given content */
-class ZipBlob implements Blob {
-	final Buncho<Blob> content;
-	public ZipBlob(Buncho<Blob> content) {
+class ZipBlob implements OutputStreamable {
+	final Buncho<OutputStreamable> content;
+	public ZipBlob(Buncho<OutputStreamable> content) {
 		this.content = content;
 	}
 	
@@ -100,7 +100,7 @@ class ZipBlob implements Blob {
 	public void writeTo(OutputStream os) throws IOException {
 		ZipOutputStream zos = new ZipOutputStream(os);
 		
-		for( Entry<Blob> e : content.entries ) {
+		for( Entry<OutputStreamable> e : content.entries ) {
 			zos.putNextEntry(new ZipEntry(e.name));
 			e.target.writeTo(zos);
 		}
@@ -136,7 +136,7 @@ public class Zippoganda {
 		return new String(hex);
 	}
 	
-	static class FileBlobResolver implements Resolver<Blob> {
+	static class FileBlobResolver implements Resolver<OutputStreamable> {
 		final private File root;
 		public FileBlobResolver(File root) {
 			this.root = root;
@@ -145,7 +145,7 @@ public class Zippoganda {
 		static final Pattern FILE_URI_REGEX = Pattern.compile("file:(.*)");
 		
 		@Override
-		public Blob get(String name) {
+		public OutputStreamable get(String name) {
 			Matcher m;
 			if( (m = FILE_URI_REGEX.matcher(name)).matches() ) {
 				String path = URLDecoder.decode(m.group(1), UTF8);
@@ -156,13 +156,13 @@ public class Zippoganda {
 		}
 	}
 	
-	static class DataUriResolver implements Resolver<Blob> {
+	static class DataUriResolver implements Resolver<OutputStreamable> {
 		// Why do I keep reinventing this stuff lol
 		// Put it in TScript34.1 or whatever.
 		static final Pattern DATA_URI_REGEX = Pattern.compile("data:,(.*)");
 		
 		@Override
-		public Blob get(String name) {
+		public OutputStreamable get(String name) {
 			Matcher m;
 			if( (m = DATA_URI_REGEX.matcher(name)).matches() ) {
 				byte[] data = URLDecoder.decode(m.group(1), UTF8).getBytes(UTF8);
@@ -207,13 +207,13 @@ public class Zippoganda {
 	
 	static class Hashifier implements ZConsumer<Entry<String>> {
 		final ZConsumer<Entry<String>> dest;
-		final Resolver<Blob> resolver;
-		public Hashifier(Resolver<Blob> resolver, ZConsumer<Entry<String>> dest) {
+		final Resolver<OutputStreamable> resolver;
+		public Hashifier(Resolver<OutputStreamable> resolver, ZConsumer<Entry<String>> dest) {
 			this.resolver = resolver;
 			this.dest = dest;
 		}
 		@Override public void accept(Entry<String> inputEntry) throws IOException, QuitException {
-			Blob blob = resolver.get(inputEntry.target);
+			OutputStreamable blob = resolver.get(inputEntry.target);
 			if( blob == null ) {
 				System.err.println("Failed to resolve "+inputEntry.target+"; can't generate hash files");
 				return;
@@ -245,7 +245,7 @@ public class Zippoganda {
 		 * 'Context' being some combination of I/O streams and
 		 * system interfaces.
 		 * */
-		public R build(Resolver<Blob> blobResolver, OutputStream out);
+		public R build(Resolver<OutputStreamable> blobResolver, OutputStream out);
 	}
 	
 	static class ZOutputter implements ZConsumer<byte[]> {
@@ -308,7 +308,7 @@ public class Zippoganda {
 	// to 'wrapping' the hashifier
 	static class HashifyAction implements ZConsumer<String> {
 		final ZConsumer<Entry<String>> hashifier;
-		public HashifyAction(Resolver<Blob> blobResolver, final ZConsumer<byte[]> out) {
+		public HashifyAction(Resolver<OutputStreamable> blobResolver, final ZConsumer<byte[]> out) {
 			this.hashifier = new Hashifier(blobResolver, new ZConsumer<Entry<String>>() {
 				@Override
 				public void accept(Entry<String> item) throws IOException, QuitException {
@@ -348,7 +348,7 @@ public class Zippoganda {
 				}
 			}
 			return new ZCommand<ZAction>() {
-				public ZAction build(Resolver<Blob> blobResolver, OutputStream out) {
+				public ZAction build(Resolver<OutputStreamable> blobResolver, OutputStream out) {
 					return new ZPrepender<String>(roots, new HashifyAction(blobResolver, new ZOutputter(out, ZOutputter.CLOSE)));
 				}
 			};
@@ -367,7 +367,7 @@ public class Zippoganda {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		Resolver<Blob> blobResolver = new MiltiResolver<Blob>(Arrays.asList(
+		Resolver<OutputStreamable> blobResolver = new MiltiResolver<OutputStreamable>(Arrays.asList(
 			new DataUriResolver(),
 			new FileBlobResolver(new File("."))
 		));
