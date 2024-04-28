@@ -89,6 +89,7 @@ interface Resolver<T> {
 	T get(String name);
 }
 
+/** A blob representing a zip file to be generated from given content */
 class ZipBlob implements Blob {
 	final Buncho<Blob> content;
 	public ZipBlob(Buncho<Blob> content) {
@@ -103,6 +104,18 @@ class ZipBlob implements Blob {
 			zos.putNextEntry(new ZipEntry(e.name));
 			e.target.writeTo(zos);
 		}
+	}
+}
+
+class QuitException extends Exception {
+	private static final long serialVersionUID = 1L;
+	
+	final int code;
+	public QuitException(int code) {
+		this.code = code;
+	}
+	public final int getCode() {
+		return code;
 	}
 }
 
@@ -175,8 +188,8 @@ public class Zippoganda {
 	}
 	
 	interface ZConsumer<T> {
-		public void accept(T item) throws IOException;
-		public void close() throws IOException;
+		public void accept(T item) throws IOException, QuitException;
+		public void close() throws IOException, QuitException;
 	}
 	
 	static class DigestingOutputStream extends OutputStream {
@@ -199,7 +212,7 @@ public class Zippoganda {
 			this.resolver = resolver;
 			this.dest = dest;
 		}
-		@Override public void accept(Entry<String> inputEntry) throws IOException {
+		@Override public void accept(Entry<String> inputEntry) throws IOException, QuitException {
 			Blob blob = resolver.get(inputEntry.target);
 			if( blob == null ) {
 				System.err.println("Failed to resolve "+inputEntry.target+"; can't generate hash files");
@@ -254,8 +267,12 @@ public class Zippoganda {
 		}
 	}
 	
+	interface ZAction {
+		public void run() throws IOException, QuitException;
+	}
+	
 	/** Pre-loaded with stuff to push! */
-	static class ZPrepender<T> implements ZConsumer<T> {
+	static class ZPrepender<T> implements ZConsumer<T>, ZAction {
 		private List<T> queue;
 		protected final ZConsumer<T> next;
 		public ZPrepender(List<T> queue, ZConsumer<T> next) {
@@ -267,17 +284,21 @@ public class Zippoganda {
 			this.queue = Collections.emptyList();
 			return queue;
 		}
-		void flushQueue() throws IOException {
+		void flushQueue() throws IOException, QuitException {
 			for( T item : take() ) next.accept(item);
 		}
-		@Override public void accept(T item) throws IOException {
+		@Override public void accept(T item) throws IOException, QuitException {
 			flushQueue();
 			next.accept(item);
 		}
 		@Override
-		public void close() throws IOException {
+		public void close() throws IOException, QuitException {
 			flushQueue();
 			next.close();
+		}
+		@Override
+		public void run() throws IOException, QuitException {
+			flushQueue();
 		}
 	}
 	
@@ -290,17 +311,17 @@ public class Zippoganda {
 		public HashifyAction(Resolver<Blob> blobResolver, final ZConsumer<byte[]> out) {
 			this.hashifier = new Hashifier(blobResolver, new ZConsumer<Entry<String>>() {
 				@Override
-				public void accept(Entry<String> item) throws IOException {
+				public void accept(Entry<String> item) throws IOException, QuitException {
 					// TODO Auto-generated method stub
 					out.accept((item.name+"\t"+item.target+"\n").getBytes(UTF8));
 				}
-				@Override public void close() throws IOException {
+				@Override public void close() throws IOException, QuitException {
 					out.close();
 				}
 			});
 		}
 		
-		public void hashify(String name, File f) throws IOException {
+		public void hashify(String name, File f) throws IOException, QuitException {
 			if( f.isDirectory() ) {
 				for( File s : f.listFiles() ) {
 					hashify(name+"/"+s.getName(), s);
@@ -310,14 +331,14 @@ public class Zippoganda {
 			}
 		}
 		
-		@Override public void accept(String root) throws IOException {
+		@Override public void accept(String root) throws IOException, QuitException {
 			hashify(root, new File(root));
 		}
-		@Override public void close() throws IOException {
+		@Override public void close() throws IOException, QuitException {
 			hashifier.close();
 		}
 		
-		public static ZCommand<ZConsumer<String>> parse(String[] argv, int i) {
+		public static ZCommand<ZAction> parse(String[] argv, int i) {
 			final List<String> roots = new ArrayList<>();
 			for( ; i<argv.length; ++i ) {
 				if( argv[i].startsWith("-") ) {
@@ -326,11 +347,22 @@ public class Zippoganda {
 					roots.add(argv[i]);
 				}
 			}
-			return new ZCommand<ZConsumer<String>>() {
-				public ZConsumer<String> build(Resolver<Blob> blobResolver, OutputStream out) {
+			return new ZCommand<ZAction>() {
+				public ZAction build(Resolver<Blob> blobResolver, OutputStream out) {
 					return new ZPrepender<String>(roots, new HashifyAction(blobResolver, new ZOutputter(out, ZOutputter.CLOSE)));
 				}
 			};
+		}
+	}
+	
+	public static void main(ZAction act) {
+		try {
+			act.run();
+		} catch( QuitException quit ) {
+			System.exit(quit.code);
+		} catch( Exception e ) {
+			e.printStackTrace(System.err);
+			System.exit(1);
 		}
 	}
 	
@@ -340,7 +372,7 @@ public class Zippoganda {
 			new FileBlobResolver(new File("."))
 		));
 		
-		ZCommand<ZConsumer<String>> command = null;
+		ZCommand<ZAction> command = null;
 		int i=0;
 		for( ; i<args.length; ++i ) {
 			if( "hashify".equals(args[i]) ) {
@@ -357,16 +389,9 @@ public class Zippoganda {
 			System.exit(1);
 		}
 		
-		ZConsumer<?> action = command.build(blobResolver, System.out);
+		ZAction action = command.build(blobResolver, System.out);
 		
-		// Whelp, now that everything's a ZConsumer,
-		// we don't know if we should read stdin and
-		// pass it to the 'action' (actually a consumer),
-		// or what the exit code should be!
-		// Maybe 'actions' should be their own thing, after all!
-		
-		action.close();
-		System.exit(0);
+		main(action);
 		
 		// Okay so we gotta get dumb old Maven to generate three JAR files:
 		// the regular one, one with sources, and one with 'javadoc',
