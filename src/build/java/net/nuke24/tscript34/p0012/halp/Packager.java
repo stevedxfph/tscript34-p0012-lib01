@@ -40,7 +40,7 @@ public class Packager {
 			}
 		};
 		
-		final ZConsumer<Entry<String>> xformer = new Zippoganda.ZTransformer<Entry<String>,Entry<OutputStreamable>,IOException>(
+		final ZConsumer<Entry<String>> zresolver = new Zippoganda.ZTransformer<Entry<String>,Entry<OutputStreamable>,IOException>(
 			new ZFunction<Entry<String>,Entry<OutputStreamable>,IOException>() {
 				@Override
 				public Entry<OutputStreamable> apply(Entry<String> input) throws IOException {
@@ -51,8 +51,18 @@ public class Packager {
 		) {
 		};
 		
-		ZConsumer<Entry<String>> hashifier = new Zippoganda.Hashifier(resolver, xformer);
-		hashifier.accept(new Entry<String>("tscript34-p0012-lib01-0.0.10-SNAPSHOT.pom", "file:target/tscript34-p0012-lib01-0.0.10-SNAPSHOT.pom"));
+		ZConsumer<Entry<String>> hashifier = new Zippoganda.Hashifier(resolver, zresolver);
+		String srcDir = "target";
+		String targetDir = artifid.groupId.replace(".", "/") + "/" + artifid.artifactId + "/" + artifid.version;
+		String fnBase = artifid.artifactId+"-"+artifid.version;
+		String[] exts = new String[] { ".pom", ".jar", "-sources.jar", "-javadoc.jar" };
+		String[] moreExts = new String[] { "", ".asc" };
+		for( String ext : exts ) {
+			for( String ext2 : moreExts ) {
+				String fn = fnBase + ext + ext2;
+				hashifier.accept(new Entry<String>(targetDir + "/" + fn, URIUtil.fileUri(srcDir+"/"+fn)));
+			}
+		}
 		hashifier.end();
 	}
 }

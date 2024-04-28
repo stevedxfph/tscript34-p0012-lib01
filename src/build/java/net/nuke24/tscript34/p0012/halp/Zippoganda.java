@@ -376,7 +376,7 @@ public class Zippoganda {
 					hashify(name+"/"+s.getName(), s);
 				}
 			} else {
-				hashifier.accept(new Entry<String>(name, "file:"+f.getPath().replace("%", "%25")));
+				hashifier.accept(new Entry<String>(name, URIUtil.fileUri(f.getPath())));
 			}
 		}
 		
