@@ -232,13 +232,13 @@ public class Zippoganda {
 	}
 	
 	/** An abstract command that lacks context */
-	interface ZCommand {
+	interface ZCommand<R> {
 		/**
 		 * Given some real context, turn this into an action that can be run.
 		 * 'Context' being some combination of I/O streams and
 		 * system interfaces.
 		 * */
-		public ZAction build(Resolver<Blob> blobResolver, OutputStream out);
+		public R build(Resolver<Blob> blobResolver, OutputStream out);
 	}
 	
 	static class HashifyAction implements ZAction {
@@ -272,7 +272,7 @@ public class Zippoganda {
 			return 0;
 		}
 		
-		public static ZCommand parse(String[] argv, int i) {
+		public static ZCommand<ZAction> parse(String[] argv, int i) {
 			final List<String> roots = new ArrayList<>();
 			for( ; i<argv.length; ++i ) {
 				if( argv[i].startsWith("-") ) {
@@ -281,7 +281,7 @@ public class Zippoganda {
 					roots.add(argv[i]);
 				}
 			}
-			return new ZCommand() {
+			return new ZCommand<ZAction>() {
 				public ZAction build(Resolver<Blob> blobResolver, OutputStream out) {
 					return new HashifyAction(roots, blobResolver, out);
 				}
@@ -295,7 +295,7 @@ public class Zippoganda {
 			new FileBlobResolver(new File("."))
 		));
 		
-		ZCommand command = null;
+		ZCommand<ZAction> command = null;
 		int i=0;
 		for( ; i<args.length; ++i ) {
 			if( "hashify".equals(args[i]) ) {
