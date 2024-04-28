@@ -242,3 +242,27 @@ Downloaded from central: https://repo1.maven.org/maven2/net/nuke24/tscript34/p00
 ```
 
 :o
+
+## Packaging Automation
+
+Maven's supposed to do all of this, but doesn't.
+
+| Tool               | Task
+|--------------------|--------------------------|
+| TBD                | Generate POM.xml         |
+| `mvn clean verify` | compile Java             |
+| `mvn clean verify` | create regular JAR file  |
+| `mvn clean verify` | create sources.jar       |
+| `mvn clean verify` | create javadoc.jar       |
+| `mvn clean verify` | create .asc files        |
+| TBD                | generate hash files      |
+| TBD                | create zip               |
+
+`mvn clean verify` saves its results as `"target/" + artifact name + "-" + version + extension`,
+e.g. `tscript34-p0012-lib01-0.0.10-SNAPSHOT-sources.jar.asc`.
+
+Steps for remaining tasks:
+- Derive group ID, artifact ID, version from pom.xml
+- Based on those and knowledge of where Maven stores its results,
+  generate a list of files, including hashes, to be zipped
+- From that list, create a zip file
