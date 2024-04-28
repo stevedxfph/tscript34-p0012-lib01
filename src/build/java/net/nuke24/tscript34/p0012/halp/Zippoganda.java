@@ -246,13 +246,13 @@ public class Zippoganda {
 	}
 	
 	/** An abstract command that lacks context */
-	interface ZCommand<R> {
+	interface ZCommand<O,R> {
 		/**
 		 * Given some real context, turn this into an action that can be run.
 		 * 'Context' being some combination of I/O streams and
 		 * system interfaces.
 		 * */
-		public R build(Resolver<OutputStreamable> blobResolver, OutputStream out);
+		public R build(Resolver<OutputStreamable> blobResolver, O outputDest);
 	}
 	
 	static class ZOutputter implements ZConsumer<byte[]> {
@@ -309,6 +309,24 @@ public class Zippoganda {
 		}
 	}
 	
+	static <O1,O2> ZCommand<ZConsumer<O2>,ZAction> pipe(
+		final ZCommand<ZConsumer<O1>,ZAction> cmd,
+		final ZCommand<ZConsumer<O2>,ZConsumer<O1>> dest
+	) {
+		return new ZCommand<ZConsumer<O2>,ZAction>() {
+			// And this is why maybe wiriting up output streams
+			// should be a separate step from other configuration;
+			// so that composition via piping doesn't need to know
+			// about all the other stuff.
+			@Override
+			public ZAction build(Resolver<OutputStreamable> blobResolver, ZConsumer<O2> out) {
+				ZConsumer<O1> destCons = dest.build(blobResolver, out);
+				ZAction act = cmd.build(blobResolver, destCons);
+				return act;
+			}
+		};
+	}
+	
 	// This evolved from an earlier implementation
 	// and should probably be renamed and/or refactored
 	// to be 'just stages in the pipeline', as opposed
@@ -345,7 +363,7 @@ public class Zippoganda {
 			hashifier.end();
 		}
 		
-		public static ZCommand<ZAction> parse(String[] argv, int i) {
+		public static ZCommand<OutputStream,ZAction> parse(String[] argv, int i) {
 			final List<String> roots = new ArrayList<>();
 			for( ; i<argv.length; ++i ) {
 				if( argv[i].startsWith("-") ) {
@@ -354,7 +372,7 @@ public class Zippoganda {
 					roots.add(argv[i]);
 				}
 			}
-			return new ZCommand<ZAction>() {
+			return new ZCommand<OutputStream,ZAction>() {
 				public ZAction build(Resolver<OutputStreamable> blobResolver, OutputStream out) {
 					return new ZPrepender<String>(roots, new HashifyAction(blobResolver, new ZOutputter(out, ZOutputter.CLOSE)));
 				}
@@ -379,7 +397,7 @@ public class Zippoganda {
 			new FileBlobResolver(new File("."))
 		));
 		
-		ZCommand<ZAction> command = null;
+		ZCommand<OutputStream,ZAction> command = null;
 		int i=0;
 		for( ; i<args.length; ++i ) {
 			if( "hashify".equals(args[i]) ) {
