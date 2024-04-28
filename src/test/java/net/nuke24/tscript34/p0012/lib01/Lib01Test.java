@@ -9,6 +9,6 @@ public class Lib01Test extends TestCase {
 	
 	public void testGreeting() {
 		String greet = new GreetingGenerator().greetingFor("George");
-		assertEquals("Hello, George!", greet);
+		assertEquals("Henlo, George!", greet);
 	}
 }

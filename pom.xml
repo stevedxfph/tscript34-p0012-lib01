@@ -6,7 +6,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.nuke24.tscript34.p0012</groupId>
 	<artifactId>tscript34-p0012-lib01</artifactId>
-	<version>0.0.10-SNAPSHOT</version>
+	<version>0.0.10.1</version>
 	<packaging>jar</packaging>
 	<name>TScript34-P0012-lib01</name>
 	<description>Publishing a Maven package requires 'a few extra steps',
@@ -143,17 +143,13 @@
 				<version>3.0.0</version>
 				<executions>
 					<execution>
-						<id>hash-the-files</id>
+						<id>generate-the-package</id>
 						<phase>verify</phase>
 						<goals>
 							<goal>java</goal>
 						</goals>
 						<configuration>
-							<mainClass>net.nuke24.tscript34.p0012.halp.Zippoganda</mainClass>
-							<arguments>
-								<argument>foo</argument>
-								<argument>bar</argument>
-							</arguments>
+							<mainClass>net.nuke24.tscript34.p0012.halp.Packager</mainClass>
 						</configuration>
 					</execution>
 				</executions>
