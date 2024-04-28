@@ -25,12 +25,8 @@ class Entry<C> {
 		this.name = name;
 		this.target = target;
 	}
-}
-
-class Buncho<C> {
-	final List<Entry<C>> entries;
-	Buncho(List<Entry<C>> entries) {
-		this.entries = entries;
+	@Override public String toString() {
+		return "Entry[\""+name+"\", " + target + "]";
 	}
 }
 
@@ -84,25 +80,23 @@ class InputStreamSourceBlob implements OutputStreamable {
 	}
 }
 
-interface Resolver<T> {
-	/** May return null to indicate 'idk' */
-	T get(String name);
-}
-
 /** A blob representing a zip file to be generated from given content */
 class ZipBlob implements OutputStreamable {
-	final Buncho<OutputStreamable> content;
-	public ZipBlob(Buncho<OutputStreamable> content) {
+	final List<Entry<OutputStreamable>> content;
+	public ZipBlob(List<Entry<OutputStreamable>> content) {
 		this.content = content;
 	}
 	
 	@Override
 	public void writeTo(OutputStream os) throws IOException {
 		ZipOutputStream zos = new ZipOutputStream(os);
-		
-		for( Entry<OutputStreamable> e : content.entries ) {
-			zos.putNextEntry(new ZipEntry(e.name));
-			e.target.writeTo(zos);
+		try {
+			for( Entry<OutputStreamable> e : content ) {
+				zos.putNextEntry(new ZipEntry(e.name));
+				e.target.writeTo(zos);
+			}
+		} finally {
+			zos.close();
 		}
 	}
 }
@@ -242,7 +236,37 @@ public class Zippoganda {
 			dest.accept(new Entry<String>(inputEntry.name+".sha1", "data:,"+hexEncode(sha1.digest())));
 			dest.accept(new Entry<String>(inputEntry.name+".md5", "data:,"+hexEncode(md5.digest())));
 		}
-		@Override public void end() throws IOException {}
+		@Override public void end() throws IOException, QuitException {
+			dest.end();
+		}
+	}
+	
+	static class ZTransformer<I,O,E extends Throwable> implements ZConsumer<I> {
+		final ZFunction<I,O,E> xform;
+		final ZConsumer<O> dest;
+		public ZTransformer(ZFunction<I,O,E> xform, ZConsumer<O> dest) {
+			this.xform = xform;
+			this.dest = dest;
+		}
+		@Override public void accept(I item) throws IOException, QuitException {
+			try {
+				this.dest.accept(this.xform.apply(item));
+			} catch (IOException e1) {
+				throw e1;
+			} catch (QuitException e2) {
+				throw e2;
+			} catch (RuntimeException e3) {
+				throw e3;
+			} catch (Throwable e3) {
+				throw new RuntimeException(e3);
+			}
+		}
+		@Override
+		public void end() throws IOException, QuitException {
+			dest.end();
+			// TODO Auto-generated method stub
+			
+		}
 	}
 	
 	/** An abstract command that lacks context */
@@ -391,11 +415,15 @@ public class Zippoganda {
 		}
 	}
 	
-	public static void main(String[] args) throws IOException {
-		Resolver<OutputStreamable> blobResolver = new MiltiResolver<OutputStreamable>(Arrays.asList(
+	public static Resolver<OutputStreamable> makeStandardResolver(File root) {
+		return new MiltiResolver<OutputStreamable>(Arrays.asList(
 			new DataUriResolver(),
 			new FileBlobResolver(new File("."))
 		));
+	}
+	
+	public static void main(String[] args) throws IOException {
+		Resolver<OutputStreamable> blobResolver = makeStandardResolver(new File("."));
 		
 		ZCommand<OutputStream,ZAction> command = null;
 		int i=0;

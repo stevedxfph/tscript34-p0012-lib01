@@ -9,26 +9,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class POMParser {
-	static class Artifinfo {
-		public final String groupId;
-		public final String artifactId;
-		public final String version;
-		public Artifinfo(String groupId, String artifactId, String version) {
-			this.groupId = groupId;
-			this.artifactId = artifactId;
-			this.version = version;
-		}
-		@Override
-		public String toString() {
-			return groupId+"."+artifactId+":"+version;
-		}
-	}
-	
 	static final Pattern GROUPID_PATTERN = Pattern.compile(".*<groupId>([^<]*)</groupId>.*");
 	static final Pattern ARTIFACTID_PATTERN = Pattern.compile(".*<artifactId>([^<]*)</artifactId>.*");
 	static final Pattern VERSION_PATTERN = Pattern.compile(".*<version>([^<]*)</version>.*");
 	
-	public static Artifinfo parseArtifinfoFromPomXml(InputStream is) throws IOException {
+	public static ArtifactID parseArtifactIdFromPomXml(InputStream is) throws IOException {
 		BufferedReader br = new BufferedReader(new InputStreamReader(is));
 		String line;
 		String groupId = null;
@@ -46,7 +31,7 @@ public class POMParser {
 				version = m.group(1);
 			}
 		}
-		return new Artifinfo(groupId, artifactId, version);
+		return new ArtifactID(groupId, artifactId, version);
 	}
 	
 	public static void main(String[] args) throws IOException {
@@ -56,7 +41,7 @@ public class POMParser {
 		}
 		InputStream is = "-".equals(infilename) ? System.in : new FileInputStream(infilename);
 		try {
-			Artifinfo artifinfo = parseArtifinfoFromPomXml(is);
+			ArtifactID artifinfo = parseArtifactIdFromPomXml(is);
 			System.out.println(artifinfo);
 		} finally {
 			is.close();
