@@ -189,7 +189,14 @@ public class Zippoganda {
 	
 	interface ZConsumer<T> {
 		public void accept(T item) throws IOException, QuitException;
-		public void close() throws IOException, QuitException;
+		/**
+		 * Indicate end of input, which a consumer may
+		 * take to mean that should flush any internal buffers
+		 * and finish its work, since it will never be called again
+		 * @throws IOException
+		 * @throws QuitException
+		 */
+		public void end() throws IOException, QuitException;
 	}
 	
 	static class DigestingOutputStream extends OutputStream {
@@ -235,7 +242,7 @@ public class Zippoganda {
 			dest.accept(new Entry<String>(inputEntry.name+".sha1", "data:,"+hexEncode(sha1.digest())));
 			dest.accept(new Entry<String>(inputEntry.name+".md5", "data:,"+hexEncode(md5.digest())));
 		}
-		@Override public void close() throws IOException {}
+		@Override public void end() throws IOException {}
 	}
 	
 	/** An abstract command that lacks context */
@@ -261,7 +268,7 @@ public class Zippoganda {
 		@Override public void accept(byte[] item) throws IOException {
 			this.os.write(item);
 		}
-		@Override public void close() throws IOException {
+		@Override public void end() throws IOException {
 			if( (onClose & FLUSH) == FLUSH ) os.flush();
 			if( (onClose & CLOSE) == CLOSE ) os.close();
 		}
@@ -292,9 +299,9 @@ public class Zippoganda {
 			next.accept(item);
 		}
 		@Override
-		public void close() throws IOException, QuitException {
+		public void end() throws IOException, QuitException {
 			flushQueue();
-			next.close();
+			next.end();
 		}
 		@Override
 		public void run() throws IOException, QuitException {
@@ -315,8 +322,8 @@ public class Zippoganda {
 					// TODO Auto-generated method stub
 					out.accept((item.name+"\t"+item.target+"\n").getBytes(UTF8));
 				}
-				@Override public void close() throws IOException, QuitException {
-					out.close();
+				@Override public void end() throws IOException, QuitException {
+					out.end();
 				}
 			});
 		}
@@ -334,8 +341,8 @@ public class Zippoganda {
 		@Override public void accept(String root) throws IOException, QuitException {
 			hashify(root, new File(root));
 		}
-		@Override public void close() throws IOException, QuitException {
-			hashifier.close();
+		@Override public void end() throws IOException, QuitException {
+			hashifier.end();
 		}
 		
 		public static ZCommand<ZAction> parse(String[] argv, int i) {
