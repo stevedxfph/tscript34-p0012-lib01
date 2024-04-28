@@ -11,6 +11,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -175,15 +176,7 @@ public class Zippoganda {
 	
 	interface ZConsumer<T> {
 		public void accept(T item) throws IOException;
-	}
-	
-	interface ZProducer<T> {
-		public int run(ZConsumer<T> dest) throws IOException;
-	}
-	
-	interface ZAction {
-		// Not necjknt the best design idk
-		public int run() throws IOException;
+		public void close() throws IOException;
 	}
 	
 	static class DigestingOutputStream extends OutputStream {
@@ -229,6 +222,7 @@ public class Zippoganda {
 			dest.accept(new Entry<String>(inputEntry.name+".sha1", "data:,"+hexEncode(sha1.digest())));
 			dest.accept(new Entry<String>(inputEntry.name+".md5", "data:,"+hexEncode(md5.digest())));
 		}
+		@Override public void close() throws IOException {}
 	}
 	
 	/** An abstract command that lacks context */
@@ -241,16 +235,67 @@ public class Zippoganda {
 		public R build(Resolver<Blob> blobResolver, OutputStream out);
 	}
 	
-	static class HashifyAction implements ZAction {
-		final List<String> roots;
+	static class ZOutputter implements ZConsumer<byte[]> {
+		static final int NOOP  = 0;
+		static final int FLUSH = 1;
+		static final int CLOSE = 2;
+		final OutputStream os;
+		final int onClose;
+		public ZOutputter(OutputStream os, int onClose) {
+			this.os = os;
+			this.onClose = onClose;
+		}
+		@Override public void accept(byte[] item) throws IOException {
+			this.os.write(item);
+		}
+		@Override public void close() throws IOException {
+			if( (onClose & FLUSH) == FLUSH ) os.flush();
+			if( (onClose & CLOSE) == CLOSE ) os.close();
+		}
+	}
+	
+	/** Pre-loaded with stuff to push! */
+	static class ZPrepender<T> implements ZConsumer<T> {
+		private List<T> queue;
+		protected final ZConsumer<T> next;
+		public ZPrepender(List<T> queue, ZConsumer<T> next) {
+			this.queue = queue;
+			this.next = next;
+		}
+		private synchronized List<T> take() throws IOException {
+			List<T> queue = this.queue;
+			this.queue = Collections.emptyList();
+			return queue;
+		}
+		void flushQueue() throws IOException {
+			for( T item : take() ) next.accept(item);
+		}
+		@Override public void accept(T item) throws IOException {
+			flushQueue();
+			next.accept(item);
+		}
+		@Override
+		public void close() throws IOException {
+			flushQueue();
+			next.close();
+		}
+	}
+	
+	// This evolved from an earlier implementation
+	// and should probably be renamed and/or refactored
+	// to be 'just stages in the pipeline', as opposed
+	// to 'wrapping' the hashifier
+	static class HashifyAction implements ZConsumer<String> {
 		final ZConsumer<Entry<String>> hashifier;
-		public HashifyAction(List<String> roots, Resolver<Blob> blobResolver, final OutputStream out) {
-			this.roots = roots;
+		public HashifyAction(Resolver<Blob> blobResolver, final ZConsumer<byte[]> out) {
 			this.hashifier = new Hashifier(blobResolver, new ZConsumer<Entry<String>>() {
 				@Override
 				public void accept(Entry<String> item) throws IOException {
 					// TODO Auto-generated method stub
-					out.write((item.name+"\t"+item.target+"\n").getBytes(UTF8));
+					out.accept((item.name+"\t"+item.target+"\n").getBytes(UTF8));
+				}
+				@Override public void close() throws IOException {
+					out.close();
 				}
 			});
 		}
@@ -265,14 +310,14 @@ public class Zippoganda {
 			}
 		}
 		
-		@Override public int run() throws IOException {
-			for( String root : roots ) {
-				hashify(root, new File(root));
-			}
-			return 0;
+		@Override public void accept(String root) throws IOException {
+			hashify(root, new File(root));
+		}
+		@Override public void close() throws IOException {
+			hashifier.close();
 		}
 		
-		public static ZCommand<ZAction> parse(String[] argv, int i) {
+		public static ZCommand<ZConsumer<String>> parse(String[] argv, int i) {
 			final List<String> roots = new ArrayList<>();
 			for( ; i<argv.length; ++i ) {
 				if( argv[i].startsWith("-") ) {
@@ -281,9 +326,9 @@ public class Zippoganda {
 					roots.add(argv[i]);
 				}
 			}
-			return new ZCommand<ZAction>() {
-				public ZAction build(Resolver<Blob> blobResolver, OutputStream out) {
-					return new HashifyAction(roots, blobResolver, out);
+			return new ZCommand<ZConsumer<String>>() {
+				public ZConsumer<String> build(Resolver<Blob> blobResolver, OutputStream out) {
+					return new ZPrepender<String>(roots, new HashifyAction(blobResolver, new ZOutputter(out, ZOutputter.CLOSE)));
 				}
 			};
 		}
@@ -295,7 +340,7 @@ public class Zippoganda {
 			new FileBlobResolver(new File("."))
 		));
 		
-		ZCommand<ZAction> command = null;
+		ZCommand<ZConsumer<String>> command = null;
 		int i=0;
 		for( ; i<args.length; ++i ) {
 			if( "hashify".equals(args[i]) ) {
@@ -312,9 +357,16 @@ public class Zippoganda {
 			System.exit(1);
 		}
 		
-		ZAction action = command.build(blobResolver, System.out);
+		ZConsumer<?> action = command.build(blobResolver, System.out);
 		
-		System.exit(action.run());
+		// Whelp, now that everything's a ZConsumer,
+		// we don't know if we should read stdin and
+		// pass it to the 'action' (actually a consumer),
+		// or what the exit code should be!
+		// Maybe 'actions' should be their own thing, after all!
+		
+		action.close();
+		System.exit(0);
 		
 		// Okay so we gotta get dumb old Maven to generate three JAR files:
 		// the regular one, one with sources, and one with 'javadoc',
