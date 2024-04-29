@@ -266,3 +266,12 @@ Steps for remaining tasks:
 - Based on those and knowledge of where Maven stores its results,
   generate a list of files, including hashes, to be zipped
 - From that list, create a zip file
+
+### Upload attempt #7 / v0.0.10.1
+
+Deployment ID: edbd806d-0da3-4b85-8fac-ed3989cb1882
+
+It validated and is now 'publishing', so I guess it worked!
+
+I suppose the next thing to do is to make the packager into
+a self-contained tool so I can use it on other projects.

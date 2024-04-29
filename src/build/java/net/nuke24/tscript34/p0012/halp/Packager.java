@@ -21,6 +21,7 @@ public class Packager {
 		ArtifactID artifid = POMParser.parseArtifactIdFromPomXml(pomStream);
 		
 		System.out.println("# artifact ID = "+artifid);
+		final String fnBase = artifid.artifactId+"-"+artifid.version;
 		
 		final ZConsumer<Entry<OutputStreamable>> zipContentCollector = new ZConsumer<Entry<OutputStreamable>>() {
 			final List<Entry<OutputStreamable>> zipRes = new ArrayList<Entry<OutputStreamable>>();
@@ -28,7 +29,7 @@ public class Packager {
 				zipRes.add(item);
 			}
 			@Override public void end() throws IOException, QuitException {
-				File outputFile = new File("target/the-package.zip");
+				File outputFile = new File("target/"+fnBase+"-package.zip");
 				outputFile.delete();
 				OutputStream os = new FileOutputStream(outputFile);
 				try {
@@ -54,7 +55,6 @@ public class Packager {
 		ZConsumer<Entry<String>> hashifier = new Zippoganda.Hashifier(resolver, zresolver);
 		String srcDir = "target";
 		String targetDir = artifid.groupId.replace(".", "/") + "/" + artifid.artifactId + "/" + artifid.version;
-		String fnBase = artifid.artifactId+"-"+artifid.version;
 		String[] exts = new String[] { ".pom", ".jar", "-sources.jar", "-javadoc.jar" };
 		String[] moreExts = new String[] { "", ".asc" };
 		for( String ext : exts ) {
