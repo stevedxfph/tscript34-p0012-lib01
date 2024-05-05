@@ -6,7 +6,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.nuke24.tscript34.p0012</groupId>
 	<artifactId>tscript34-p0012-lib01</artifactId>
-	<version>0.0.10.1</version>
+	<version>0.0.10.2</version>
 	<packaging>jar</packaging>
 	<name>TScript34-P0012-lib01</name>
 	<description>Publishing a Maven package requires 'a few extra steps',
@@ -31,7 +31,7 @@
 		<developerConnection>scm:git:ssh://github.com:TOGoS/tscript34-p0012-lib01.git</developerConnection>
 		<url>http://github.com/TOGoS/tscript34-p0012-lib01</url>
 	</scm>
-	<distributionManagement>
+	<!-- distributionManagement>
 		<snapshotRepository>
 			<id>ossrh</id>
 			<url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
@@ -40,7 +40,7 @@
 			<id>ossrh</id>
 			<url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
 		</repository>
-	</distributionManagement>
+	</distributionManagement -->
 
 	
 	<dependencies>
