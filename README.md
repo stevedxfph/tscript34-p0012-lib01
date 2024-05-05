@@ -348,3 +348,19 @@ What are you supposed to do if you lose access to your original signing key?
 GPG doesn't make it easy to back them up!
 
 Anyway, we can apparently do without `<distributionManagement>`.
+
+
+### Upload attempt #12
+
+```sh
+curl --request POST --verbose --header "Authorization: Bearer ${auth_base64}" --form bundle=@target/tscript34-p0012-lib01-0.0.10.3-package.zip   https://central.sonatype.com/api/v1/publisher/upload
+```
+
+Server says `201 Created`.
+
+https://central.sonatype.com/publishing shows a new deployment has been created,
+with the same name as the file ("tscript34-p0012-lib01-0.0.10.3-package.zip").
+
+So that worked.  I suppose there's another API endpoint
+that I could use to actually publish.
+(See [the docs](https://central.sonatype.org/publish/publish-portal-api/#uploading-a-deployment-bundle).)
