@@ -275,3 +275,57 @@ It validated and is now 'publishing', so I guess it worked!
 
 I suppose the next thing to do is to make the packager into
 a self-contained tool so I can use it on other projects.
+
+
+### Upload attempt #8 / v0.0.10.2
+
+Can we do without the `<distributionManagement>` part of the pom.xml?
+
+Also building on another computer, which means I have a different signing key.
+
+When I attempt to publish, it says
+
+> Invalid signature for file: tscript34-p0012-lib01-0.0.10.2-javadoc.jar
+> Invalid signature for file: tscript34-p0012-lib01-0.0.10.2-sources.jar
+> Invalid signature for file: tscript34-p0012-lib01-0.0.10.2.jar
+> Invalid signature for file: tscript34-p0012-lib01-0.0.10.2.pom
+
+Which is all of them.
+
+Is this because I used a different signature than before,
+or because I haven't distributed this key?
+
+### Upload attempt #9
+
+So I did a
+
+```sh
+gpg --keyserver keyserver.ubuntu.com --send-key BA43B4AA4A1D82285A68860E1796BC8141D3529A
+```
+And uploaded again.
+
+Still didn't work.
+
+GPG says the signatures are valid.
+
+
+### Upload attempt #10
+
+What if I use a new key with a different e-mail address?
+
+```sh
+gpg --gen-key
+```
+
+With e-mail address `togos00+etf20240504@gmail.com`,
+generating `C170189784A1B914EB4B3595A897357685CFB31E`
+
+```
+gpg --keyserver keyserver.ubuntu.com --send-key C170189784A1B914EB4B3595A897357685CFB31E
+mvn -Dgpg.keyname=C170189784A1B914EB4B3595A897357685CFB31E verify
+```
+
+And attempt to publish that.
+
+Pending...Validating...Failed.
+It still doesn't like my signatures!
