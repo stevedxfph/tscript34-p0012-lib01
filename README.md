@@ -329,3 +329,22 @@ And attempt to publish that.
 
 Pending...Validating...Failed.
 It still doesn't like my signatures!
+
+
+### Upload attempt #11
+
+Signed with good old `8B9E6793B42A6ED7A4382423565A5EBB1DDED0FE`.
+
+Validated!
+
+So it still seems it didn't like my alternate signing keys.
+Whether that's just because they're not the first one I signed
+with or because I failed to do some other step,
+like upload to all 3 of the key servers mentioned
+(keyserver.ubuntu.com, keys.openpgp.org, pgp.mit.edu)
+I'm still not 100% sure.
+
+What are you supposed to do if you lose access to your original signing key?
+GPG doesn't make it easy to back them up!
+
+Anyway, we can apparently do without `<distributionManagement>`.
